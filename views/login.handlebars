@@ -1,4 +1,27 @@
-<div class="container" style="width:40%;align-content:center">
+{{#if msgup}}
+    <div class="alert alert-danger">
+        <strong>Invalid!</strong> Please check your password.
+    </div>
+{{/if}}
+{{#if msgu}}
+    <div class="alert alert-danger">
+        <strong>Invalid!</strong> Please check your details.
+    </div>
+{{/if}}
+
+{{#if msgs}}
+    <div class="alert alert-success">
+        <strong>Success!</strong> You have logged in as "{{name}}"
+    </div>
+{{/if}}
+
+{{#if msgl}}
+    <div class="alert alert-danger">
+        <strong>Members area!</strong>
+        Please <a href="/login">Login.</a>
+    </div>
+{{else}}
+    <div class="container" style="width:40%;align-content:center">
     <div class="row main">
         <div class="panel-heading">
             <div class="panel-title text-center">
@@ -13,7 +36,7 @@
                     <label for="name" class="cols-sm-2 control-label">Name</label>
                     <div class="cols-sm-10">
                         <div class="input-group">
-                            <span class="input-group-addon"><i class="fa fa-envelope fa" aria-hidden="true"></i></span>
+                            <span class="input-group-addon"><i class="fa fa-user fa" aria-hidden="true"></i></span>
                             <input type="text" class="form-control" name="name" id="name"  placeholder="Enter your Name"/>
                         </div>
                     </div>
@@ -36,4 +59,4 @@
         </div>
     </div>
 </div>
-
+{{/if}}

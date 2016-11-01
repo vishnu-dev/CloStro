@@ -3,6 +3,7 @@ var exphbs  = require('express-handlebars');
 var bparse = require('body-parser');
 var mongoose = require('mongoose');
 var session = require('express-session');
+var multer = require('multer');
 
 var app = express();
 
@@ -19,7 +20,7 @@ app.use(bparse.urlencoded({ extended: false }));
 app.use(bparse.json());
 
 // Mongoose database
-mongoose.connect('mongodb://localhost/usersystem');
+mongoose.connect('mongodb://127.0.0.1/usersystem');
 let db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
@@ -30,15 +31,18 @@ db.once('open', function() {
 // User Collection
 let UserSchema = mongoose.Schema({
     name: String,
+    uname: String,
     pass: String,
-    email: String
+    email: String,
+    conf: String,
+    fname: String
 });
 
 let User = mongoose.model('users', UserSchema);
 
 // Session
 app.use(session({
-    secret:"anfldnfasnfkldfaa",
+    secret:"<your_secret_key>",
     resave:true,
     saveUninitialized:false
 }));
@@ -53,16 +57,26 @@ routerPublic.use(function (req, res, next) {
 });
 routerLoggedin.use(function (req, res, next) {
     if(typeof req.session.user == 'undefined') {
-        res.redirect('/login');
+        res.render('login',{msgl:req.query});
     } else {
         next();
     }
 });
 
+// Multer
+var multipartUpload = multer({storage: multer.diskStorage({
+    destination: function (req, file, callback) { callback(null, './uploads');},
+    filename: function (req, file, callback) { callback(null, file.originalname);}})
+}).single('upfile');
+
 // Routes
 // HomePage
 routerPublic.get('/', function (req, res) {
-	res.render('home');
+    // var x = req.session.user;
+    if(req.session.user)
+	    res.render('home',{name:req.session.user.name});
+    else
+        res.render('home');
 });
 
 // SignupPage
@@ -87,7 +101,10 @@ routerPublic.post('/signup', function (req, res, next) {
 
 // Login Page
 routerPublic.get('/login', function (req, res) {
-    res.render('login');
+    if(req.session.user)
+        res.render('login',{loginerr:req.session.user.name});
+    else
+        res.render('login');
 });
 
 // Login validation
@@ -98,18 +115,17 @@ routerPublic.post('/login', function(req, res) {
         }
         else {
             if (!document) {
-                let message = 'No user exists with this username.';
-
-                res.redirect('/login/?message='+message);
+                res.render('login',{msgu:req.query});
+                /*res.redirect('/login/?message='+message);*/
             }
             else {
                 if (document.pass != req.body.password) {
-                    let message = 'The password is incorrect.';
-                    res.redirect('/login/?message='+encodeURIComponent(message));
+                    // res.redirect('/login/?message='+encodeURIComponent(message));
+                    res.render('login',{msgup:req.query});
                 }
                 else {
                     req.session.user = document;
-                    res.redirect('/')
+                    res.render('login',{msgs:req.query,name:req.session.user.name});
                 }
             }
         }
@@ -118,8 +134,67 @@ routerPublic.post('/login', function(req, res) {
 
 // About
 routerLoggedin.get('/about', function (req, res) {
-    res.render('about');
+    if(req.session.user)
+        res.render('about',{name:req.session.user.name});
 });
 
+// Upload page
+routerLoggedin.get('/upload', function (req, res) {
+    if(req.session.user) {
+        res.render('upload', {name: req.session.user.name});
+    }
+    else
+        res.render('upload');
+});
+// Upload file store
+routerLoggedin.post('/upload',multipartUpload,function(req,res) {
+    console.log(req.file);
+    User.findOne({name: req.session.user.name}, (error, document) => {
+        if (error) {
+            throw error;
+        }
+        else {
+            document.fname = req.file.originalname;
+            document.save();
+            console.log(document);
+        }
+    });
+    res.redirect('/download');
+});
+
+//Download page
+routerLoggedin.get('/download', function (req, res) {
+    if(req.session.user) {
+        User.findOne({name: req.session.user.name}, (error, document) => {
+            if (error) {
+                throw error;
+            }
+            else {
+                    res.render('download', {name: req.session.user.name, filenamed: document.fname});
+            }
+        });
+    }
+    else
+        res.render('download');
+});
+routerLoggedin.post('/download', function (req, res) {
+    User.findOne({name: req.session.user.name}, (error, document) => {
+        if (error) {
+            throw error;
+        }
+        else {
+            let path = './uploads/' + document.fname;
+            res.download(path);
+        }
+    });
+});
+
+
+// Logout
+routerLoggedin.get('/logout', function (req, res) {
+    req.session.destroy(function(err) {
+        res.redirect('/login');
+    })
+});
 app.use(routerPublic);
 app.use(routerLoggedin);
