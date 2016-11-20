@@ -21,7 +21,7 @@ app.use(bparse.json());
 
 // Mongoose database
 mongoose.connect('mongodb://127.0.0.1/usersystem');
-let db = mongoose.connection;
+var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
     console.log('LOGGED | MongoDB Connected - ' + new Date());
@@ -29,16 +29,22 @@ db.once('open', function() {
 
 // Models
 // User Collection
-let UserSchema = mongoose.Schema({
+var UserSchema = mongoose.Schema({
     name: String,
     uname: String,
     pass: String,
     email: String,
-    conf: String,
-    fname: String
+    conf: String
 });
 
-let User = mongoose.model('users', UserSchema);
+var User = mongoose.model('users', UserSchema);
+
+var DataSchema = mongoose.Schema({
+	name:String,
+	fname:String
+});
+
+var Data = mongoose.model('datas', DataSchema);
 
 // Session
 app.use(session({
@@ -48,8 +54,8 @@ app.use(session({
 }));
 
 // Routers
-let routerPublic = express.Router();
-let routerLoggedin = express.Router();
+var routerPublic = express.Router();
+var routerLoggedin = express.Router();
 
 // Middlewares
 routerPublic.use(function (req, res, next) {
@@ -86,7 +92,6 @@ routerPublic.get('/signup', function (req, res) {
 
 // Signup DB Post
 routerPublic.post('/signup', function (req, res, next) {
-    // cheeck password
     var newUser = new User({
         name:req.body.name,
         email: req.body.email,
@@ -149,41 +154,47 @@ routerLoggedin.get('/upload', function (req, res) {
 // Upload file store
 routerLoggedin.post('/upload',multipartUpload,function(req,res) {
     console.log(req.file);
-    User.findOne({name: req.session.user.name}, (error, document) => {
+    var arr = [];
+    var nam = req.session.user.name;
+    User.findOne({name: nam},(error, document) => {
         if (error) {
             throw error;
         }
         else {
-            document.fname = req.file.originalname;
-            document.save();
-            console.log(document);
+            var x = new Data({
+                name:nam,
+                fname:req.file.originalname
+            });
+            x.save();
+            console.log(x);
         }
     });
+
     res.redirect('/download');
 });
 
 //Download page
 routerLoggedin.get('/download', function (req, res) {
-    if(req.session.user) {
-        User.findOne({name: req.session.user.name}, (error, document) => {
+        Data.find({name: req.session.user.name}, (error, document) => {
             if (error) {
                 throw error;
             }
             else {
-                    res.render('download', {name: req.session.user.name, filenamed: document.fname});
+            		var arr = [],i;
+                    for(i=0;i<document.length;i++){
+                    	arr.push(document[i].fname);
+                    }
+                    res.render('download',{files:arr,name:req.session.user.name});
             }
         });
-    }
-    else
-        res.render('download');
 });
 routerLoggedin.post('/download', function (req, res) {
-    User.findOne({name: req.session.user.name}, (error, document) => {
+    Data.findOne({name: req.session.user.name,fname: req.body.dload}, (error, document) => {
         if (error) {
             throw error;
         }
         else {
-            let path = './uploads/' + document.fname;
+            var path = './uploads/' + document.fname;
             res.download(path);
         }
     });

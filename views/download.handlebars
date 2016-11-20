@@ -1,11 +1,16 @@
-<h1>Download your file</h1>
-<br>
-{{#if filenamed}}
-<p name="filenamed">Filename : "{{filenamed}}"</p>
-<br>
-<form method="post" enctype="multipart/form-data" action="/download">
-<input class="btn btn-success" type="submit" value="Download">
-</form>
+{{#if files}}
+    <center>
+        <h4>Your Downloads</h4><br>
+    </center>
+    {{#each files}}
+    	<br><br>
+		<form style="display:inline-block"  method="post" action="/download">
+			<input class="btn btn-success" name="dload" type="submit" value="{{this}}">
+		</form>
+    {{/each}}
 {{else}}
-    <h5>Please upload a file..</h5>
+    <div class="container">
+        <h4>Please upload a file!</h4>
+        <h5>Upload <a href="/upload">here</a>!</h5>
+    </div>
 {{/if}}
