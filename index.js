@@ -39,9 +39,11 @@ var UserSchema = mongoose.Schema({
 
 var User = mongoose.model('users', UserSchema);
 
+// Data Collection
 var DataSchema = mongoose.Schema({
 	name:String,
-	fname:String
+	fname:String,
+    size:Number
 });
 
 var Data = mongoose.model('datas', DataSchema);
@@ -153,24 +155,35 @@ routerLoggedin.get('/upload', function (req, res) {
 });
 // Upload file store
 routerLoggedin.post('/upload',multipartUpload,function(req,res) {
-    console.log(req.file);
-    var arr = [];
+    var arr = [],sizeinmb;
     var nam = req.session.user.name;
-    User.findOne({name: nam},(error, document) => {
-        if (error) {
-            throw error;
-        }
-        else {
-            var x = new Data({
-                name:nam,
-                fname:req.file.originalname
+    // sizeinmb=req.file.size/1024000;
+    Data.find({name:nam},(error,document) => {
+        console.log(document.length);
+        if(document.length<=5)
+        {
+            User.findOne({name: nam},(error, document) => {
+                if (error) {
+                    throw error;
+                }
+                else {
+                    var x = new Data({
+                        name:nam,
+                        fname:req.body.upfile.fname
+                        // size:sizeinmb
+                    });
+                    x.save();
+                    console.log(x);
+                }
             });
-            x.save();
-            console.log(x);
+            res.redirect('/download');
         }
-    });
-
-    res.redirect('/download');
+        else
+        {
+            var s = "Max file limit crossed!";
+            res.render('upload',{max:s,name:nam});
+        }
+    });  
 });
 
 //Download page
