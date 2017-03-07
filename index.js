@@ -132,7 +132,7 @@ routerPublic.post('/login', function(req, res) {
                 }
                 else {
                     req.session.user = document;
-                    res.render('login',{msgs:req.query,name:req.session.user.name});
+                    res.render('upload',{msgs:req.query,name:req.session.user.name});
                 }
             }
         }
@@ -155,6 +155,7 @@ routerLoggedin.get('/upload', function (req, res) {
 });
 // Upload file store
 routerLoggedin.post('/upload',multipartUpload,function(req,res) {
+    console.log(req.file);
     var arr = [],sizeinmb;
     var nam = req.session.user.name;
     // sizeinmb=req.file.size/1024000;
