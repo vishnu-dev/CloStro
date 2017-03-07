@@ -72,10 +72,11 @@ routerLoggedin.use(function (req, res, next) {
 });
 
 // Multer
-var multipartUpload = multer({storage: multer.diskStorage({
+maxSize = 1*1024*1024;
+var storage = multer.diskStorage({
     destination: function (req, file, callback) { callback(null, './uploads');},
-    filename: function (req, file, callback) { callback(null, file.originalname);}})
-}).single('upfile');
+    filename: function (req, file, callback) { callback(null, file.originalname);}});
+var multipartUpload = multer({storage: storage} ,limits: { fileSize: maxSize }).single('upfile');
 
 // Routes
 // HomePage
@@ -160,30 +161,21 @@ routerLoggedin.post('/upload',multipartUpload,function(req,res) {
     var nam = req.session.user.name;
     // sizeinmb=req.file.size/1024000;
     Data.find({name:nam},(error,document) => {
-        console.log(document.length);
-        if(document.length<=5)
-        {
-            User.findOne({name: nam},(error, document) => {
-                if (error) {
-                    throw error;
-                }
-                else {
-                    var x = new Data({
-                        name:nam,
-                        fname:req.body.upfile.fname
-                        // size:sizeinmb
-                    });
-                    x.save();
-                    console.log(x);
-                }
-            });
-            res.redirect('/download');
-        }
-        else
-        {
-            var s = "Max file limit crossed!";
-            res.render('upload',{max:s,name:nam});
-        }
+        User.findOne({name: nam},(error, document) => {
+            if (error) {
+                throw error;
+            }
+            else {
+                var x = new Data({
+                    name:nam,
+                    fname:req.file.filename
+                    // size:sizeinmb
+                });
+                x.save();
+                console.log(x);
+            }
+        });
+        res.redirect('/download');
     });  
 });
 
