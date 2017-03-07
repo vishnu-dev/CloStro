@@ -4,6 +4,11 @@
     </div>
 {{/if}}
 
+{{#if err}}
+	<div class="alert alert-danger">
+        <strong>Sorry!</strong> You have crossed the file size limit
+    </div>
+{{/if}}
 <h1>Upload your file</h1>
 <br>
 <form method="post" enctype="multipart/form-data" action="/upload">

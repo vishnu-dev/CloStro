@@ -155,7 +155,11 @@ routerLoggedin.get('/upload', function (req, res) {
         res.render('upload');
 });
 // Upload file store
-routerLoggedin.post('/upload',multipartUpload,function(req,res) {
+routerLoggedin.post('/upload',multipartUpload,function(err,req,res,nxt) {
+    if(err){
+       res.render('upload',{err:err}); 
+    }
+    else{
     console.log(req.file);
     var arr = [],sizeinmb;
     var nam = req.session.user.name;
@@ -176,7 +180,8 @@ routerLoggedin.post('/upload',multipartUpload,function(req,res) {
             }
         });
         res.redirect('/download');
-    });  
+    }); 
+    } 
 });
 
 //Download page
