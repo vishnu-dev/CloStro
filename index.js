@@ -76,7 +76,7 @@ maxSize = 1*1024*1024;
 var storage = multer.diskStorage({
     destination: function (req, file, callback) { callback(null, './uploads');},
     filename: function (req, file, callback) { callback(null, file.originalname);}});
-var multipartUpload = multer({storage: storage} ,limits: { fileSize: maxSize }).single('upfile');
+var multipartUpload = multer({storage: storage,limits: { fileSize: maxSize }}).single('upfile');
 
 // Routes
 // HomePage
