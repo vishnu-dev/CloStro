@@ -1,6 +1,12 @@
 # CloStro
  CloStro is a file storage and sharing platform.
  
+ ## Built With
+ * NodeJS
+ * ExpressJS
+ * Handlebars
+ * MongooseJS
+ 
  ## How to use?
 
 1) npm install
